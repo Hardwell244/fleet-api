@@ -3,9 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DriverController;
 use App\Http\Controllers\Api\VehicleController;
-use App\Http\Controllers\Api\MaintenanceController;
 use Illuminate\Support\Facades\Route;
-
 
 // Rota pública de teste
 Route::get('/test', function () {
@@ -58,17 +56,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}', [DriverController::class, 'update']);
         Route::delete('/{id}', [DriverController::class, 'destroy']);
     });
-
-    // Rotas de Manutenções
-    Route::prefix('v1/maintenances')->group(function () {
-        Route::get('/', [MaintenanceController::class, 'index']);
-        Route::get('/pending', [MaintenanceController::class, 'pending']);
-        Route::get('/vehicle/{vehicleId}', [MaintenanceController::class, 'byVehicle']);
-        Route::get('/{id}', [MaintenanceController::class, 'show']);
-        Route::post('/', [MaintenanceController::class, 'store']);
-        Route::put('/{id}', [MaintenanceController::class, 'update']);
-        Route::patch('/{id}', [MaintenanceController::class, 'update']);
-        Route::delete('/{id}', [MaintenanceController::class, 'destroy']);
-    });
-
 });

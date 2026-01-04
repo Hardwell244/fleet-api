@@ -42,22 +42,6 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
         );
-
-        // Bind MaintenanceRepository
-        $this->app->bind(
-            \App\Repositories\Contracts\MaintenanceRepositoryInterface::class,
-            \App\Repositories\MaintenanceRepository::class
-        );
-
-        // Bind MaintenanceService
-        $this->app->bind(
-            \App\Services\MaintenanceService::class,
-            function ($app) {
-                return new \App\Services\MaintenanceService(
-                    $app->make(\App\Repositories\Contracts\MaintenanceRepositoryInterface::class)
-                );
-            }
-        );
     }
 
     /**

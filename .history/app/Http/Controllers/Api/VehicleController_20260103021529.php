@@ -38,9 +38,9 @@ class VehicleController extends Controller
         ], 201);
     }
 
-    public function show(string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function show(int $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);  // ✅ CONVERTE PARA int
+        $vehicle = $this->service->findById($id);
 
         if (!$vehicle) {
             return response()->json([
@@ -53,9 +53,9 @@ class VehicleController extends Controller
         ], 200);
     }
 
-    public function update(UpdateVehicleRequest $request, string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function update(UpdateVehicleRequest $request, int $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);  // ✅ CONVERTE PARA int
+        $vehicle = $this->service->findById($id);
 
         if (!$vehicle) {
             return response()->json([
@@ -64,7 +64,7 @@ class VehicleController extends Controller
         }
 
         $companyId = $request->user()->company_id;
-        $dto = VehicleDTO::fromRequest($request->validated(), $companyId, (int) $id);  // ✅ CONVERTE PARA int
+        $dto = VehicleDTO::fromRequest($request->validated(), $companyId, $id);
         $this->service->update($vehicle, $dto);
 
         return response()->json([
@@ -73,9 +73,9 @@ class VehicleController extends Controller
         ], 200);
     }
 
-    public function destroy(string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function destroy(int $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);  // ✅ CONVERTE PARA int
+        $vehicle = $this->service->findById($id);
 
         if (!$vehicle) {
             return response()->json([
@@ -97,15 +97,16 @@ class VehicleController extends Controller
     }
 
     /**
-     * Lista veículos disponíveis
-     */
-    public function available(Request $request): JsonResponse
-    {
-        $vehicles = $this->service->getAvailable();  // ✅ CORRIGIDO DE vehicleService PARA service
+ * Lista veículos disponíveis
+ */
+public function available(Request $request): JsonResponse
+{
+    $vehicles = $this->vehicleService->getAvailable();
 
-        return response()->json([
-            'success' => true,
-            'data' => $vehicles
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'data' => $vehicles
+    ]);
+}
+
 }

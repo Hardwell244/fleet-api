@@ -18,9 +18,10 @@ return new class extends Migration
             $table->date('cnh_expires_at');
             $table->string('phone', 15);
             $table->boolean('is_available')->default(true);
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');  // ✅ MOVIDO PRA CÁ
             $table->timestamps();
             $table->softDeletes();
+
+            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
 
             $table->index(['company_id', 'is_available']);
             $table->index('cpf');

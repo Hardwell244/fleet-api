@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet API - Teste Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .auth-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .token-display {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            word-break: break-all;
+            display: none;
+        }
+
+        .token-display.active {
+            display: block;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .menu-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #34495e;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover {
+            background: #667eea;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: #667eea;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .test-section {
+            display: none;
+        }
+
+        .test-section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .response {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .response h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .response pre {
+            background: #2c3e50;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 Fleet API - Teste Completo</h1>
+            <p>Testador completo da API - Muito melhor que Thunder Client!</p>
+        </div>
+
+        <div class="auth-section">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="loginEmail" value="admin@logitech.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="loginPassword" value="password">
+                </div>
+            </div>
+            <button onclick="login()">🔐 Login</button>
+            <button onclick="logout()" class="danger">🚪 Logout</button>
+            <div id="tokenDisplay" class="token-display"></div>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <h3 style="margin-bottom: 20px;">📋 Menu de Testes</h3>
+                <div class="menu-item active" onclick="showSection('vehicles-list')">📦 Listar Veículos</div>
+                <div class="menu-item" onclick="showSection('vehicles-create')">➕ Criar Veículo</div>
+                <div class="menu-item" onclick="showSection('vehicles-update')">✏️ Atualizar Veículo</div>
+                <div class="menu-item" onclick="showSection('vehicles-delete')">🗑️ Deletar Veículo</div>
+                <div class="menu-item" onclick="showSection('drivers-list')">👨‍✈️ Listar Motoristas</div>
+                <div class="menu-item" onclick="showSection('drivers-create')">➕ Criar Motorista</div>
+                <div class="menu-item" onclick="showSection('drivers-update')">✏️ Atualizar Motorista</div>
+                <div class="menu-item" onclick="showSection('drivers-delete')">🗑️ Deletar Motorista</div>
+            </div>
+
+            <div class="main-content">
+                <!-- LISTAR VEÍCULOS -->
+                <div id="vehicles-list" class="test-section active">
+                    <h2>📦 Listar Veículos</h2>
+                    <div class="card">
+                        <h3>Filtros (opcional)</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="filterStatus">
+                                    <option value="">Todos</option>
+                                    <option value="available">Disponível</option>
+                                    <option value="in_use">Em Uso</option>
+                                    <option value="maintenance">Manutenção</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo:</label>
+                                <select id="filterType">
+                                    <option value="">Todos</option>
+                                    <option value="truck">Caminhão</option>
+                                    <option value="van">Van</option>
+                                    <option value="car">Carro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Buscar:</label>
+                                <input type="text" id="filterSearch" placeholder="Placa, marca...">
+                            </div>
+                        </div>
+                        <button onclick="listVehicles()">🔍 Buscar Veículos</button>
+                        <button onclick="listAvailableVehicles()" class="success">✅ Veículos Disponíveis</button>
+                    </div>
+                    <div id="response-vehicles-list" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- CRIAR VEÍCULO -->
+                <div id="vehicles-create" class="test-section">
+                    <h2>➕ Criar Novo Veículo</h2>
+                    <div class="card">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Placa:</label>
+                                <input type="text" id="createPlate" placeholder="ABC1234">
+                            </div>
+                            <div class="form-group">
+                                <label>Marca:</label>
+                                <input type="text" id="createBrand" placeholder="Volkswagen">
+                            </div>
+                            <div class="form-group">
+                                <label>Modelo:</label>
+                                <input type="text" id="createModel" placeholder="Delivery 9.170">
+                            </div>
+                            <div class="form-group">
+                                <label>Ano:</label>
+                                <input type="number" id="createYear" placeholder="2024">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo:</label>
+                                <select id="createType">
+                                    <option value="truck">Caminhão</option>
+                                    <option value="van">Van</option>
+                                    <option value="car">Carro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="createStatus">
+                                    <option value="available">Disponível</option>
+                                    <option value="in_use">Em Uso</option>
+                                    <option value="maintenance">Manutenção</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Capacidade Combustível (L):</label>
+                                <input type="number" id="createFuelCapacity" placeholder="150">
+                            </div>
+                            <div class="form-group">
+                                <label>KM Atual:</label>
+                                <input type="number" id="createCurrentKm" placeholder="0">
+                            </div>
+                        </div>
+                        <button onclick="createVehicle()">💾 Criar Veículo</button>
+                    </div>
+                    <div id="response-vehicles-create" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- ATUALIZAR VEÍCULO -->
+                <div id="vehicles-update" class="test-section">
+                    <h2>✏️ Atualizar Veículo</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label>ID do Veículo:</label>
+                            <input type="number" id="updateVehicleId" placeholder="1">
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Placa:</label>
+                                <input type="text" id="updatePlate" placeholder="ABC1234">
+                            </div>
+                            <div class="form-group">
+                                <label>Marca:</label>
+                                <input type="text" id="updateBrand" placeholder="Volkswagen">
+                            </div>
+                            <div class="form-group">
+                                <label>Modelo:</label>
+                                <input type="text" id="updateModel" placeholder="Delivery 9.170">
+                            </div>
+                            <div class="form-group">
+                                <label>Ano:</label>
+                                <input type="number" id="updateYear" placeholder="2024">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo:</label>
+                                <select id="updateType">
+                                    <option value="truck">Caminhão</option>
+                                    <option value="van">Van</option>
+                                    <option value="car">Carro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="updateStatus">
+                                    <option value="available">Disponível</option>
+                                    <option value="in_use">Em Uso</option>
+                                    <option value="maintenance">Manutenção</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Capacidade Combustível (L):</label>
+                                <input type="number" id="updateFuelCapacity" placeholder="150">
+                            </div>
+                            <div class="form-group">
+                                <label>KM Atual:</label>
+                                <input type="number" id="updateCurrentKm" placeholder="5000">
+                            </div>
+                        </div>
+                        <button onclick="updateVehicle('PUT')">💾 Atualizar Completo (PUT)</button>
+                        <button onclick="updateVehicle('PATCH')" class="success">🔧 Atualizar Parcial (PATCH)</button>
+                    </div>
+                    <div id="response-vehicles-update" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- DELETAR VEÍCULO -->
+                <div id="vehicles-delete" class="test-section">
+                    <h2>🗑️ Deletar Veículo</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label>ID do Veículo:</label>
+                            <input type="number" id="deleteVehicleId" placeholder="1">
+                        </div>
+                        <button onclick="deleteVehicle()" class="danger">🗑️ Deletar Veículo</button>
+                    </div>
+                    <div id="response-vehicles-delete" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- LISTAR MOTORISTAS -->
+                <div id="drivers-list" class="test-section">
+                    <h2>👨‍✈️ Listar Motoristas</h2>
+                    <div class="card">
+                        <h3>Filtros (opcional)</h3>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="filterDriverStatus">
+                                    <option value="">Todos</option>
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="suspended">Suspenso</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria CNH:</label>
+                                <select id="filterCnhCategory">
+                                    <option value="">Todas</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="AB">AB</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Buscar:</label>
+                                <input type="text" id="filterDriverSearch" placeholder="Nome, CPF...">
+                            </div>
+                        </div>
+                        <button onclick="listDrivers()">🔍 Buscar Motoristas</button>
+                        <button onclick="listAvailableDrivers()" class="success">✅ Motoristas Disponíveis</button>
+                    </div>
+                    <div id="response-drivers-list" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- CRIAR MOTORISTA -->
+                <div id="drivers-create" class="test-section">
+                    <h2>➕ Criar Novo Motorista</h2>
+                    <div class="card">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Nome:</label>
+                                <input type="text" id="createDriverName" placeholder="João Silva">
+                            </div>
+                            <div class="form-group">
+                                <label>CPF (11 dígitos):</label>
+                                <input type="text" id="createDriverCpf" placeholder="12345678901" maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label>CNH (11 dígitos):</label>
+                                <input type="text" id="createDriverCnh" placeholder="98765432100" maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria CNH:</label>
+                                <select id="createDriverCnhCategory">
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="AB">AB</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Validade CNH:</label>
+                                <input type="date" id="createDriverCnhExpiry">
+                            </div>
+                            <div class="form-group">
+                                <label>Telefone:</label>
+                                <input type="text" id="createDriverPhone" placeholder="11999999999" maxlength="15">
+                            </div>
+                            <div class="form-group">
+                                <label>Email (opcional):</label>
+                                <input type="email" id="createDriverEmail" placeholder="joao@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="createDriverStatus">
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="suspended">Suspenso</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="createDriver()">💾 Criar Motorista</button>
+                    </div>
+                    <div id="response-drivers-create" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- ATUALIZAR MOTORISTA -->
+                <div id="drivers-update" class="test-section">
+                    <h2>✏️ Atualizar Motorista</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label>ID do Motorista:</label>
+                            <input type="number" id="updateDriverId" placeholder="1">
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Nome:</label>
+                                <input type="text" id="updateDriverName" placeholder="João Silva">
+                            </div>
+                            <div class="form-group">
+                                <label>CPF (11 dígitos):</label>
+                                <input type="text" id="updateDriverCpf" placeholder="12345678901" maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label>CNH (11 dígitos):</label>
+                                <input type="text" id="updateDriverCnh" placeholder="98765432100" maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria CNH:</label>
+                                <select id="updateDriverCnhCategory">
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="AB">AB</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Validade CNH:</label>
+                                <input type="date" id="updateDriverCnhExpiry">
+                            </div>
+                            <div class="form-group">
+                                <label>Telefone:</label>
+                                <input type="text" id="updateDriverPhone" placeholder="11999999999" maxlength="15">
+                            </div>
+                            <div class="form-group">
+                                <label>Email (opcional):</label>
+                                <input type="email" id="updateDriverEmail" placeholder="joao@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <select id="updateDriverStatus">
+                                    <option value="active">Ativo</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="suspended">Suspenso</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="updateDriver('PUT')">💾 Atualizar Completo (PUT)</button>
+                        <button onclick="updateDriver('PATCH')" class="success">🔧 Atualizar Parcial (PATCH)</button>
+                    </div>
+                    <div id="response-drivers-update" class="response" style="display:none;"></div>
+                </div>
+
+                <!-- DELETAR MOTORISTA -->
+                <div id="drivers-delete" class="test-section">
+                    <h2>🗑️ Deletar Motorista</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label>ID do Motorista:</label>
+                            <input type="number" id="deleteDriverId" placeholder="1">
+                        </div>
+                        <button onclick="deleteDriver()" class="danger">🗑️ Deletar Motorista</button>
+                    </div>
+                    <div id="response-drivers-delete" class="response" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api';
+        let TOKEN = '';
+
+        // FUNÇÕES AUXILIARES
+        function showSection(sectionId) {
+            document.querySelectorAll('.test-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showResponse(elementId, response, isError = false) {
+            const element = document.getElementById(elementId);
+            const statusClass = isError ? 'status-error' : 'status-success';
+            const statusText = isError ? '❌ ERRO' : '✅ SUCESSO';
+
+            element.innerHTML = `
+                <span class="status-badge ${statusClass}">${statusText}</span>
+                <h3>Resposta da API:</h3>
+                <pre>${JSON.stringify(response, null, 2)}</pre>
+            `;
+            element.style.display = 'block';
+        }
+
+        async function makeRequest(url, method = 'GET', body = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            if (TOKEN) {
+                options.headers['Authorization'] = `Bearer ${TOKEN}`;
+            }
+
+            if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                return { data, status: response.status, ok: response.ok };
+            } catch (error) {
+                return { data: { error: error.message }, status: 500, ok: false };
+            }
+        }
+
+        // AUTENTICAÇÃO
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const result = await makeRequest(`${API_URL}/auth/login`, 'POST', { email, password });
+
+            if (result.ok && result.data.data && result.data.data.token) {
+                TOKEN = result.data.data.token;
+                document.getElementById('tokenDisplay').innerHTML = `
+                    <strong>🔐 Token Ativo:</strong><br>${TOKEN}
+                `;
+                document.getElementById('tokenDisplay').classList.add('active');
+                alert('✅ Login realizado com sucesso!');
+            } else {
+                alert('❌ Erro no login: ' + JSON.stringify(result.data));
+            }
+        }
+
+        function logout() {
+            TOKEN = '';
+            document.getElementById('tokenDisplay').classList.remove('active');
+            alert('🚪 Logout realizado!');
+        }
+
+        // VEÍCULOS
+        async function listVehicles() {
+            const status = document.getElementById('filterStatus').value;
+            const type = document.getElementById('filterType').value;
+            const search = document.getElementById('filterSearch').value;
+
+            let url = `${API_URL}/v1/vehicles?`;
+            if (status) url += `status=${status}&`;
+            if (type) url += `type=${type}&`;
+            if (search) url += `search=${search}&`;
+
+            const result = await makeRequest(url);
+            showResponse('response-vehicles-list', result.data, !result.ok);
+        }
+
+        async function listAvailableVehicles() {
+            const result = await makeRequest(`${API_URL}/v1/vehicles/available`);
+            showResponse('response-vehicles-list', result.data, !result.ok);
+        }
+
+        async function createVehicle() {
+            const body = {
+                plate: document.getElementById('createPlate').value,
+                brand: document.getElementById('createBrand').value,
+                model: document.getElementById('createModel').value,
+                year: parseInt(document.getElementById('createYear').value),
+                type: document.getElementById('createType').value,
+                status: document.getElementById('createStatus').value,
+                fuel_capacity: parseInt(document.getElementById('createFuelCapacity').value),
+                current_km: parseInt(document.getElementById('createCurrentKm').value)
+            };
+
+            const result = await makeRequest(`${API_URL}/v1/vehicles`, 'POST', body);
+            showResponse('response-vehicles-create', result.data, !result.ok);
+        }
+
+        async function updateVehicle(method) {
+            const id = document.getElementById('updateVehicleId').value;
+            const body = {
+                plate: document.getElementById('updatePlate').value,
+                brand: document.getElementById('updateBrand').value,
+                model: document.getElementById('updateModel').value,
+                year: parseInt(document.getElementById('updateYear').value),
+                type: document.getElementById('updateType').value,
+                status: document.getElementById('updateStatus').value,
+                fuel_capacity: parseInt(document.getElementById('updateFuelCapacity').value),
+                current_km: parseInt(document.getElementById('updateCurrentKm').value)
+            };
+
+            const result = await makeRequest(`${API_URL}/v1/vehicles/${id}`, method, body);
+            showResponse('response-vehicles-update', result.data, !result.ok);
+        }
+
+        async function deleteVehicle() {
+            const id = document.getElementById('deleteVehicleId').value;
+            if (!confirm('Tem certeza que deseja deletar este veículo?')) return;
+
+            const result = await makeRequest(`${API_URL}/v1/vehicles/${id}`, 'DELETE');
+            showResponse('response-vehicles-delete', result.data, !result.ok);
+        }
+
+        // MOTORISTAS
+        async function listDrivers() {
+            const status = document.getElementById('filterDriverStatus').value;
+            const cnhCategory = document.getElementById('filterCnhCategory').value;
+            const search = document.getElementById('filterDriverSearch').value;
+
+            let url = `${API_URL}/v1/drivers?`;
+            if (status) url += `status=${status}&`;
+            if (cnhCategory) url += `cnh_category=${cnhCategory}&`;
+            if (search) url += `search=${search}&`;
+
+            const result = await makeRequest(url);
+            showResponse('response-drivers-list', result.data, !result.ok);
+        }
+
+        async function listAvailableDrivers() {
+            const result = await makeRequest(`${API_URL}/v1/drivers/available`);
+            showResponse('response-drivers-list', result.data, !result.ok);
+        }
+
+        async function createDriver() {
+            const body = {
+                name: document.getElementById('createDriverName').value,
+                cpf: document.getElementById('createDriverCpf').value,
+                cnh: document.getElementById('createDriverCnh').value,
+                cnh_category: document.getElementById('createDriverCnhCategory').value,
+                cnh_expires_at: document.getElementById('createDriverCnhExpiry').value,
+                phone: document.getElementById('createDriverPhone').value,
+                email: document.getElementById('createDriverEmail').value || null,
+                status: document.getElementById('createDriverStatus').value
+            };
+
+            const result = await makeRequest(`${API_URL}/v1/drivers`, 'POST', body);
+            showResponse('response-drivers-create', result.data, !result.ok);
+        }
+
+        async function updateDriver(method) {
+            const id = document.getElementById('updateDriverId').value;
+            const body = {
+                name: document.getElementById('updateDriverName').value,
+                cpf: document.getElementById('updateDriverCpf').value,
+                cnh: document.getElementById('updateDriverCnh').value,
+                cnh_category: document.getElementById('updateDriverCnhCategory').value,
+                cnh_expires_at: document.getElementById('updateDriverCnhExpiry').value,
+                phone: document.getElementById('updateDriverPhone').value,
+                email: document.getElementById('updateDriverEmail').value || null,
+                status: document.getElementById('updateDriverStatus').value
+            };
+
+            const result = await makeRequest(`${API_URL}/v1/drivers/${id}`, method, body);
+            showResponse('response-drivers-update', result.data, !result.ok);
+        }
+
+        async function deleteDriver() {
+            const id = document.getElementById('deleteDriverId').value;
+            if (!confirm('Tem certeza que deseja deletar este motorista?')) return;
+
+            const result = await makeRequest(`${API_URL}/v1/drivers/${id}`, 'DELETE');
+            showResponse('response-drivers-delete', result.data, !result.ok);
+        }
+    </script>
+</body>
+</html>

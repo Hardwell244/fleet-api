@@ -24,13 +24,9 @@ Artisan::command('test:api', function () {
 
     if ($loginResponse->successful()) {
         $this->info('✅ LOGIN: SUCESSO');
-        $token = $loginResponse->json()['token'];
+        $token = $loginResponse->json()['data']['token'];
         $this->comment('Token: ' . substr($token, 0, 20) . '...');
         $this->newLine();
-
-        // ============================================
-        // VEHICLES
-        // ============================================
 
         // VEHICLES - LISTAR
         $this->info('═══════════════════════════════════════');
@@ -67,10 +63,6 @@ Artisan::command('test:api', function () {
         }
         $this->newLine();
 
-        // ============================================
-        // DRIVERS
-        // ============================================
-
         // DRIVERS - LISTAR
         $this->info('═══════════════════════════════════════');
         $this->info('5️⃣  TESTANDO DRIVERS - LISTAR');
@@ -106,17 +98,10 @@ Artisan::command('test:api', function () {
         }
         $this->newLine();
 
-        // ============================================
-        // VEHICLES - CRUD COMPLETO
-        // ============================================
-
         // CRIAR VEHICLE
-        $this->info('═══════════════════════════════════════');
         $this->info('8️⃣  TESTANDO VEHICLES - CRIAR');
-        $this->info('═══════════════════════════════════════');
-        $randomPlate = 'TST' . rand(1000, 9999);
         $createVehicle = Http::withToken($token)->post('http://127.0.0.1:8000/api/v1/vehicles', [
-            'plate' => $randomPlate,
+            'plate' => 'TEST999',
             'brand' => 'Mercedes-Benz',
             'model' => 'Sprinter',
             'year' => 2024,
@@ -133,7 +118,7 @@ Artisan::command('test:api', function () {
                 // ATUALIZAR VEHICLE
                 $this->info('9️⃣  TESTANDO VEHICLES - ATUALIZAR');
                 $updateVehicle = Http::withToken($token)->put("http://127.0.0.1:8000/api/v1/vehicles/{$newVehicleId}", [
-                    'plate' => $randomPlate,
+                    'plate' => 'TEST999',
                     'brand' => 'Mercedes-Benz',
                     'model' => 'Sprinter 415',
                     'year' => 2024,
@@ -146,7 +131,6 @@ Artisan::command('test:api', function () {
                     $this->info('✅ VEHICLE UPDATE: SUCESSO');
                 } else {
                     $this->error('❌ VEHICLE UPDATE: ERRO');
-                    $this->error($updateVehicle->body());
                 }
                 $this->newLine();
 
@@ -157,132 +141,20 @@ Artisan::command('test:api', function () {
                     $this->info('✅ VEHICLE DELETE: SUCESSO');
                 } else {
                     $this->error('❌ VEHICLE DELETE: ERRO');
-                    $this->error($deleteVehicle->body());
                 }
-                $this->newLine();
             }
         } else {
             $this->error('❌ VEHICLE CREATE: ERRO');
             $this->error($createVehicle->body());
-            $this->newLine();
-        }
-
-        // ============================================
-        // MAINTENANCES
-        // ============================================
-
-        // MAINTENANCES - LISTAR
-        $this->info('═══════════════════════════════════════');
-        $this->info('1️⃣1️⃣  TESTANDO MAINTENANCES - LISTAR');
-        $this->info('═══════════════════════════════════════');
-        $maintenances = Http::withToken($token)->get('http://127.0.0.1:8000/api/v1/maintenances');
-        if ($maintenances->successful()) {
-            $this->info('✅ MAINTENANCES LIST: SUCESSO');
-            $count = count($maintenances->json()['data'] ?? []);
-            $this->comment("Total de manutenções: {$count}");
-        } else {
-            $this->error('❌ MAINTENANCES LIST: ERRO');
-            $this->error($maintenances->body());
         }
         $this->newLine();
-
-        // MAINTENANCES - PENDENTES
-        $this->info('1️⃣2️⃣  TESTANDO MAINTENANCES - PENDENTES');
-        $pendingMaintenances = Http::withToken($token)->get('http://127.0.0.1:8000/api/v1/maintenances/pending');
-        if ($pendingMaintenances->successful()) {
-            $this->info('✅ MAINTENANCES PENDING: SUCESSO');
-        } else {
-            $this->error('❌ MAINTENANCES PENDING: ERRO');
-            $this->error($pendingMaintenances->body());
-        }
-        $this->newLine();
-
-        // MAINTENANCES - POR VEÍCULO
-        $this->info('1️⃣3️⃣  TESTANDO MAINTENANCES - POR VEÍCULO');
-        $vehicleMaintenances = Http::withToken($token)->get('http://127.0.0.1:8000/api/v1/maintenances/vehicle/1');
-        if ($vehicleMaintenances->successful()) {
-            $this->info('✅ MAINTENANCES BY VEHICLE: SUCESSO');
-        } else {
-            $this->error('❌ MAINTENANCES BY VEHICLE: ERRO');
-            $this->error($vehicleMaintenances->body());
-        }
-        $this->newLine();
-
-        // CRIAR MAINTENANCE
-        $this->info('═══════════════════════════════════════');
-        $this->info('1️⃣4️⃣  TESTANDO MAINTENANCES - CRIAR');
-        $this->info('═══════════════════════════════════════');
-        $createMaintenance = Http::withToken($token)->post('http://127.0.0.1:8000/api/v1/maintenances', [
-            'vehicle_id' => 1,
-            'type' => 'preventive',
-            'description' => 'Troca de óleo e filtros - TESTE',
-            'scheduled_date' => date('Y-m-d', strtotime('+7 days')),
-            'status' => 'scheduled',
-            'cost' => 350.00,
-            'notes' => 'Manutenção preventiva agendada'
-        ]);
-        if ($createMaintenance->successful()) {
-            $this->info('✅ MAINTENANCE CREATE: SUCESSO');
-            $newMaintenanceId = $createMaintenance->json()['data']['id'] ?? null;
-
-            if ($newMaintenanceId) {
-                // VER MAINTENANCE ESPECÍFICA
-                $this->info('1️⃣5️⃣  TESTANDO MAINTENANCES - VER ESPECÍFICA');
-                $maintenance = Http::withToken($token)->get("http://127.0.0.1:8000/api/v1/maintenances/{$newMaintenanceId}");
-                if ($maintenance->successful()) {
-                    $this->info('✅ MAINTENANCE SHOW: SUCESSO');
-                } else {
-                    $this->error('❌ MAINTENANCE SHOW: ERRO');
-                    $this->error($maintenance->body());
-                }
-                $this->newLine();
-
-                // ATUALIZAR MAINTENANCE
-                $this->info('1️⃣6️⃣  TESTANDO MAINTENANCES - ATUALIZAR');
-                $updateMaintenance = Http::withToken($token)->put("http://127.0.0.1:8000/api/v1/maintenances/{$newMaintenanceId}", [
-                    'vehicle_id' => 1,
-                    'type' => 'preventive',
-                    'description' => 'Troca de óleo, filtros e revisão completa - TESTE',
-                    'scheduled_date' => date('Y-m-d', strtotime('+7 days')),
-                    'status' => 'in_progress',
-                    'cost' => 450.00,
-                    'notes' => 'Manutenção em andamento'
-                ]);
-                if ($updateMaintenance->successful()) {
-                    $this->info('✅ MAINTENANCE UPDATE: SUCESSO');
-                } else {
-                    $this->error('❌ MAINTENANCE UPDATE: ERRO');
-                    $this->error($updateMaintenance->body());
-                }
-                $this->newLine();
-
-                // DELETAR MAINTENANCE
-                $this->info('1️⃣7️⃣  TESTANDO MAINTENANCES - DELETAR');
-                $deleteMaintenance = Http::withToken($token)->delete("http://127.0.0.1:8000/api/v1/maintenances/{$newMaintenanceId}");
-                if ($deleteMaintenance->successful()) {
-                    $this->info('✅ MAINTENANCE DELETE: SUCESSO');
-                } else {
-                    $this->error('❌ MAINTENANCE DELETE: ERRO');
-                    $this->error($deleteMaintenance->body());
-                }
-                $this->newLine();
-            }
-        } else {
-            $this->error('❌ MAINTENANCE CREATE: ERRO');
-            $this->error($createMaintenance->body());
-            $this->newLine();
-        }
 
         // RESUMO FINAL
         $this->info('═══════════════════════════════════════');
         $this->info('🎉 TESTES COMPLETOS!');
         $this->info('═══════════════════════════════════════');
-        $this->comment('✅ Auth (Login/Logout/Me/Refresh)');
-        $this->comment('✅ Vehicles CRUD Completo + Available');
-        $this->comment('✅ Drivers CRUD Completo + Available');
-        $this->comment('✅ Maintenances CRUD Completo + Pending + ByVehicle');
-        $this->newLine();
-        $this->info('Total de 17 testes executados!');
+        $this->comment('Todas as rotas principais foram testadas.');
+        $this->comment('Verifique os resultados acima.');
 
     } else {
         $this->error('❌ LOGIN FALHOU - IMPOSSÍVEL CONTINUAR');

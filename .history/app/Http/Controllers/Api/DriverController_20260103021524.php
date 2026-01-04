@@ -46,9 +46,9 @@ class DriverController extends Controller
     /**
      * Exibir motorista específico
      */
-    public function show(string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function show(int $id): JsonResponse
     {
-        $driver = $this->service->findById((int) $id);  // ✅ CONVERTE PARA int
+        $driver = $this->service->findById($id);
 
         if (!$driver) {
             return response()->json([
@@ -85,15 +85,15 @@ class DriverController extends Controller
     /**
      * Atualizar motorista
      */
-    public function update(UpdateDriverRequest $request, string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function update(UpdateDriverRequest $request, int $id): JsonResponse
     {
         $dto = DriverDTO::fromRequest(
             $request->validated(),
             auth()->user()->company_id,
-            (int) $id  // ✅ CONVERTE PARA int
+            $id
         );
 
-        $updated = $this->service->update((int) $id, $dto);  // ✅ CONVERTE PARA int
+        $updated = $this->service->update($id, $dto);
 
         if (!$updated) {
             return response()->json([
@@ -111,9 +111,9 @@ class DriverController extends Controller
     /**
      * Deletar motorista
      */
-    public function destroy(string $id): JsonResponse  // ✅ MUDADO DE int PARA string
+    public function destroy(int $id): JsonResponse
     {
-        $deleted = $this->service->delete((int) $id);  // ✅ CONVERTE PARA int
+        $deleted = $this->service->delete($id);
 
         if (!$deleted) {
             return response()->json([
