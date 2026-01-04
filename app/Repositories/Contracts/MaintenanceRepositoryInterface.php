@@ -10,6 +10,7 @@ interface MaintenanceRepositoryInterface
 {
     public function list(int $perPage = 15, array $filters = []): LengthAwarePaginator;
     public function findById(int $id): ?Maintenance;
+    public function findByIdWithoutScope(int $id): ?Maintenance;
     public function create(array $data): Maintenance;
     public function update(Maintenance $maintenance, array $data): bool;
     public function delete(Maintenance $maintenance): bool;

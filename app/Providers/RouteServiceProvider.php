@@ -27,9 +27,11 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
-        // API rate limit - 60 requisições por minuto
+        // API rate limit - 100/min autenticado, 10/min não autenticado
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            return $request->user()
+                ? Limit::perMinute(100)->by($request->user()->id)
+                : Limit::perMinute(10)->by($request->ip());
         });
 
         // Rastreamento público - 10 por minuto por IP

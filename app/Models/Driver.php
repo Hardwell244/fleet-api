@@ -21,7 +21,7 @@ class Driver extends Model
         'cnh_category',
         'cnh_expires_at',
         'phone',
-        'is_available',
+        'status',
     ];
 
     protected $casts = [
@@ -70,9 +70,20 @@ class Driver extends Model
         );
     }
 
+    public function getCnhExpiryAttribute()
+    {
+        return $this->cnh_expires_at?->format('Y-m-d');
+    }
+
     public function getIsCnhValidAttribute(): bool
     {
         return $this->cnh_expires_at->isFuture();
+    }
+
+    // Mutators
+    public function setCnhExpiryAttribute($value)
+    {
+        $this->attributes['cnh_expires_at'] = $value;
     }
 
     // Business Logic

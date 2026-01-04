@@ -56,7 +56,7 @@ class DriverController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $driver = $this->service->findById((int) $id);
+        $driver = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$driver) {
             return response()->json([
@@ -93,7 +93,7 @@ class DriverController extends Controller
 
     public function update(UpdateDriverRequest $request, string $id): JsonResponse
     {
-        $driver = $this->service->findById((int) $id);
+        $driver = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$driver) {
             return response()->json([
@@ -127,7 +127,7 @@ class DriverController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $driver = $this->service->findById((int) $id);
+        $driver = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$driver) {
             return response()->json([

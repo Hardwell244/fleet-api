@@ -14,7 +14,7 @@ class VehicleDTO
         public readonly string $type,
         public readonly string $status,
         public readonly ?float $fuel_capacity,
-        public readonly ?float $current_km,
+        public readonly float $current_km,
     ) {}
 
     public static function fromRequest(array $data, int $companyId, ?int $id = null): self
@@ -29,7 +29,7 @@ class VehicleDTO
             type: $data['type'],
             status: $data['status'] ?? 'available',
             fuel_capacity: isset($data['fuel_capacity']) ? (float) $data['fuel_capacity'] : null,
-            current_km: isset($data['current_km']) ? (float) $data['current_km'] : null,
+            current_km: isset($data['current_km']) ? (float) $data['current_km'] : 0.0,
         );
     }
 

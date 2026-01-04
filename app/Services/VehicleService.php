@@ -24,6 +24,11 @@ class VehicleService
         return $this->repository->findById($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Vehicle
+    {
+        return $this->repository->findByIdWithoutScope($id);
+    }
+
     public function create(VehicleDTO $dto): Vehicle
     {
         return $this->repository->create($dto->toArray());

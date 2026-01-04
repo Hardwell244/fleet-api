@@ -24,6 +24,11 @@ class MaintenanceService
         return $this->repository->findById($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Maintenance
+    {
+        return $this->repository->findByIdWithoutScope($id);
+    }
+
     public function create(MaintenanceDTO $dto): Maintenance
     {
         return $this->repository->create($dto->toArray());

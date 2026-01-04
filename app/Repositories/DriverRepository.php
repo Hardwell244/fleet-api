@@ -47,6 +47,14 @@ class DriverRepository
     }
 
     /**
+     * Buscar motorista por ID sem scope de company
+     */
+    public function findByIdWithoutScope(int $id): ?Driver
+    {
+        return Driver::withoutGlobalScopes()->with('company')->find($id);
+    }
+
+    /**
      * Criar novo motorista
      */
     public function create(DriverDTO $dto): Driver

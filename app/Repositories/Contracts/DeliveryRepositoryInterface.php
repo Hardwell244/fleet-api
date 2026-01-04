@@ -10,6 +10,7 @@ interface DeliveryRepositoryInterface
 {
     public function list(int $perPage = 15, array $filters = []): LengthAwarePaginator;
     public function findById(int $id): ?Delivery;
+    public function findByIdWithoutScope(int $id): ?Delivery;
     public function findByTrackingCode(string $trackingCode): ?Delivery;
     public function create(array $data): Delivery;
     public function update(Delivery $delivery, array $data): bool;

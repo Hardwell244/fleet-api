@@ -15,7 +15,6 @@ readonly class DriverDTO
         public string $cnh_category,
         public string $cnh_expiry,
         public ?string $phone,
-        public ?string $email,
         public string $status,
     ) {}
 
@@ -30,7 +29,6 @@ readonly class DriverDTO
             cnh_category: $data['cnh_category'],
             cnh_expiry: $data['cnh_expiry'],
             phone: $data['phone'] ?? null,
-            email: $data['email'] ?? null,
             status: $data['status'] ?? 'active',
         );
     }
@@ -46,24 +44,26 @@ readonly class DriverDTO
             cnh_category: $driver->cnh_category,
             cnh_expiry: $driver->cnh_expiry,
             phone: $driver->phone,
-            email: $driver->email,
             status: $driver->status,
         );
     }
 
     public function toArray(): array
     {
-        return [
-            'id' => $this->id,
+        $data = [
             'company_id' => $this->company_id,
             'name' => $this->name,
             'cpf' => $this->cpf,
             'cnh' => $this->cnh,
             'cnh_category' => $this->cnh_category,
-            'cnh_expiry' => $this->cnh_expiry,
-            'phone' => $this->phone,
-            'email' => $this->email,
+            'cnh_expires_at' => $this->cnh_expiry,
             'status' => $this->status,
         ];
+
+        if ($this->phone !== null) {
+            $data['phone'] = $this->phone;
+        }
+
+        return $data;
     }
 }

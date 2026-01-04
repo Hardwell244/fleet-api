@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Company extends Model
 {
@@ -68,5 +69,32 @@ class Company extends Model
             substr($cnpj, 8, 4),
             substr($cnpj, 12, 2)
         );
+    }
+
+    // Cache Methods
+    public static function isCompanyActive(int $companyId): bool
+    {
+        return Cache::remember("company.{$companyId}.active", 3600, function () use ($companyId) {
+            return self::where('id', $companyId)
+                ->where('is_active', true)
+                ->exists();
+        });
+    }
+
+    public static function clearCompanyCache(int $companyId): void
+    {
+        Cache::forget("company.{$companyId}.active");
+    }
+
+    // Events
+    protected static function booted(): void
+    {
+        static::updated(function (Company $company) {
+            self::clearCompanyCache($company->id);
+        });
+
+        static::deleted(function (Company $company) {
+            self::clearCompanyCache($company->id);
+        });
     }
 }

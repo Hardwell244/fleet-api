@@ -46,7 +46,7 @@ class MaintenanceController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $maintenance = $this->service->findById((int) $id);
+        $maintenance = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$maintenance) {
             return response()->json([
@@ -83,7 +83,7 @@ class MaintenanceController extends Controller
 
     public function update(UpdateMaintenanceRequest $request, string $id): JsonResponse
     {
-        $maintenance = $this->service->findById((int) $id);
+        $maintenance = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$maintenance) {
             return response()->json([
@@ -117,7 +117,7 @@ class MaintenanceController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $maintenance = $this->service->findById((int) $id);
+        $maintenance = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$maintenance) {
             return response()->json([

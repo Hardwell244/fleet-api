@@ -41,6 +41,11 @@ class VehicleRepository
         return $this->model->with('company')->find($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Vehicle
+    {
+        return $this->model->withoutGlobalScopes()->with('company')->find($id);
+    }
+
     public function create(array $data): Vehicle
     {
         return $this->model->create($data);

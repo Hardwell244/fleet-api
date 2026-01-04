@@ -48,6 +48,11 @@ class DeliveryRepository implements DeliveryRepositoryInterface
         return Delivery::with(['vehicle', 'driver', 'company', 'events'])->find($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Delivery
+    {
+        return Delivery::withoutGlobalScopes()->with(['vehicle', 'driver', 'company', 'events'])->find($id);
+    }
+
     public function findByTrackingCode(string $trackingCode): ?Delivery
     {
         return Delivery::with(['vehicle', 'driver', 'events'])

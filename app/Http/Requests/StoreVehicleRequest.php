@@ -14,7 +14,7 @@ class StoreVehicleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plate' => 'required|string|max:7|unique:vehicles,plate',
+            'plate' => ['required', 'string', 'max:7', 'regex:/^[A-Z]{3}[0-9]{4}$/', 'unique:vehicles,plate'],
             'brand' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
@@ -29,6 +29,7 @@ class StoreVehicleRequest extends FormRequest
     {
         return [
             'plate.required' => 'A placa é obrigatória.',
+            'plate.regex' => 'A placa deve estar no formato ABC1234 (3 letras seguidas de 4 números).',
             'plate.unique' => 'Esta placa já está cadastrada.',
             'brand.required' => 'A marca é obrigatória.',
             'model.required' => 'O modelo é obrigatório.',

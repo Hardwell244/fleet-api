@@ -57,7 +57,7 @@ class VehicleController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $vehicle = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$vehicle) {
             return response()->json([
@@ -94,7 +94,7 @@ class VehicleController extends Controller
 
     public function update(UpdateVehicleRequest $request, string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $vehicle = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$vehicle) {
             return response()->json([
@@ -128,7 +128,7 @@ class VehicleController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $vehicle = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$vehicle) {
             return response()->json([

@@ -24,6 +24,11 @@ class DeliveryService
         return $this->repository->findById($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Delivery
+    {
+        return $this->repository->findByIdWithoutScope($id);
+    }
+
     public function findByTrackingCode(string $trackingCode): ?Delivery
     {
         return $this->repository->findByTrackingCode($trackingCode);

@@ -46,6 +46,11 @@ class MaintenanceRepository implements MaintenanceRepositoryInterface
         return Maintenance::with(['vehicle', 'company'])->find($id);
     }
 
+    public function findByIdWithoutScope(int $id): ?Maintenance
+    {
+        return Maintenance::withoutGlobalScopes()->with(['vehicle', 'company'])->find($id);
+    }
+
     public function create(array $data): Maintenance
     {
         return Maintenance::create($data);

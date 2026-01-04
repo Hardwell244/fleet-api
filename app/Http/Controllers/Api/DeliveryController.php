@@ -46,7 +46,7 @@ class DeliveryController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $delivery = $this->service->findById((int) $id);
+        $delivery = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$delivery) {
             return response()->json([
@@ -83,7 +83,7 @@ class DeliveryController extends Controller
 
     public function update(UpdateDeliveryRequest $request, string $id): JsonResponse
     {
-        $delivery = $this->service->findById((int) $id);
+        $delivery = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$delivery) {
             return response()->json([
@@ -117,7 +117,7 @@ class DeliveryController extends Controller
 
     public function destroy(string $id): JsonResponse
     {
-        $delivery = $this->service->findById((int) $id);
+        $delivery = $this->service->findByIdWithoutScope((int) $id);
 
         if (!$delivery) {
             return response()->json([
