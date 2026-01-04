@@ -1,0 +1,365 @@
+# 🛡️ Documentação de Segurança - Fleet API
+
+## Visão Geral
+
+Esta API implementa múltiplas camadas de segurança seguindo as melhores práticas da indústria. Este documento detalha todas as medidas de segurança implementadas.
+
+---
+
+## 1. Autenticação e Autorização
+
+### 1.1 Laravel Sanctum
+- **Token-based authentication** para APIs
+- Tokens gerados com hash SHA-256
+- Tokens armazenados de forma segura no banco de dados
+- Expiração configurável de tokens
+
+### 1.2 Policies (Authorization)
+Implementadas policies para todos os recursos principais:
+
+- `VehiclePolicy` - Controla acesso a veículos
+- `DriverPolicy` - Controla acesso a motoristas
+- `MaintenancePolicy` - Controla acesso a manutenções
+- `DeliveryPolicy` - Controla acesso a entregas
+
+**Cada policy verifica:**
+- Usuário pertence à mesma empresa (company_id)
+- Permissões específicas (view, create, update, delete)
+
+**Exemplo de uso no controller:**
+```php
+$this->authorize('view', $vehicle);
+$this->authorize('update', $driver);
+$this->authorize('delete', $delivery);
+```
+
+---
+
+## 2. Multi-Tenancy (Isolamento de Dados)
+
+### 2.1 Company ID
+- Todas as tabelas principais possuem `company_id`
+- Trait `BelongsToCompany` aplicada em todos os models
+- Policies garantem que usuários só acessam dados da própria empresa
+
+### 2.2 Validação Automática
+- Middleware `EnsureCompanyOwnership` (disponível mas opcional)
+- Policies verificam company_id em TODAS operações
+- Impossível acessar dados de outras empresas
+
+**Teste de Segurança:**
+```bash
+# Usuário da Company 1 tentando acessar veículo da Company 2
+GET /api/v1/vehicles/999
+# Retorna: 403 Forbidden (This action is unauthorized)
+```
+
+---
+
+## 3. Rate Limiting (Proteção contra DDoS/Brute Force)
+
+### 3.1 Limitadores Configurados
+
+**Login:**
+```php
+RateLimiter::for('login', function (Request $request) {
+    return Limit::perMinute(5)->by($request->ip());
+});
+```
+- Máximo 5 tentativas de login por minuto por IP
+- Previne ataques de força bruta
+
+**API Geral:**
+```php
+RateLimiter::for('api', function (Request $request) {
+    return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+});
+```
+- Máximo 60 requisições por minuto por usuário/IP
+- Previne abuso da API
+
+**Rastreamento Público:**
+```php
+RateLimiter::for('tracking', function (Request $request) {
+    return Limit::perMinute(10)->by($request->ip());
+});
+```
+- Máximo 10 consultas por minuto por IP
+- Previne scraping de dados de rastreamento
+
+### 3.2 Aplicação nas Rotas
+```php
+// Login com rate limit
+Route::prefix('auth')->middleware('throttle:login')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// API protegida com rate limit
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    // Rotas protegidas
+});
+
+// Rastreamento público com rate limit
+Route::middleware('throttle:tracking')->group(function () {
+    Route::get('/v1/deliveries/track/{code}', [DeliveryController::class, 'track']);
+});
+```
+
+---
+
+## 4. CORS (Cross-Origin Resource Sharing)
+
+### 4.1 Configuração Segura
+Arquivo: `config/cors.php`
+```php
+'allowed_origins' => [
+    'http://localhost:3000',           // Next.js dev
+    'http://localhost:3001',           // Backup dev
+    'https://fleet.seudominio.com',    // Produção
+],
+'supports_credentials' => true,
+```
+
+**Proteções:**
+- Lista branca de origens permitidas
+- Bloqueia requisições de domínios não autorizados
+- Suporta credenciais (cookies, tokens)
+
+### 4.2 Atualização para Produção
+⚠️ **IMPORTANTE:** Antes de deploy, atualizar `allowed_origins` com o domínio de produção!
+
+---
+
+## 5. Auditoria e Logs
+
+### 5.1 Trait LogsActivity
+Aplicada em todos os models principais (Vehicle, Driver, Maintenance, Delivery)
+
+**Registra automaticamente:**
+- **CREATE:** Quem criou, quando, IP, dados completos
+- **UPDATE:** Quem atualizou, quando, IP, mudanças (antes/depois)
+- **DELETE:** Quem deletou, quando, IP, dados do registro
+
+**Exemplo de log:**
+```json
+{
+  "model": "Vehicle",
+  "id": 123,
+  "company_id": 1,
+  "user_id": 5,
+  "user_email": "admin@empresa.com",
+  "ip": "192.168.1.100",
+  "changes": {
+    "status": "available -> in_use",
+    "current_km": "10000 -> 10500"
+  }
+}
+```
+
+### 5.2 Canal de Log Dedicado
+Arquivo: `storage/logs/audit.log`
+- Logs separados da aplicação principal
+- Rotação diária
+- Retenção de 90 dias
+- Permissões restritas (0664)
+
+### 5.3 Auditoria em Tempo Real
+Logs acessíveis via:
+```bash
+tail -f storage/logs/audit.log
+```
+
+---
+
+## 6. Proteção contra Vulnerabilidades Comuns
+
+### 6.1 SQL Injection
+✅ **PROTEGIDO** - Eloquent ORM com prepared statements
+- Nunca usamos queries raw sem binding
+- Todos os parâmetros são escapados automaticamente
+
+**Exemplo seguro:**
+```php
+Vehicle::where('plate', $plate)->first();  // ✅ Seguro
+Vehicle::whereRaw("plate = ?", [$plate]); // ✅ Seguro com binding
+```
+
+### 6.2 XSS (Cross-Site Scripting)
+✅ **PROTEGIDO** - API retorna apenas JSON
+- Sem renderização de HTML
+- Headers `Content-Type: application/json`
+- Blade escaping automático (se usado)
+
+### 6.3 CSRF (Cross-Site Request Forgery)
+⚠️ **NÃO APLICÁVEL** - API Stateless
+- APIs baseadas em token não precisam de CSRF
+- Sanctum usa tokens Bearer no header Authorization
+
+### 6.4 Mass Assignment
+✅ **PROTEGIDO** - Models com $fillable definido
+```php
+protected $fillable = [
+    'plate', 'brand', 'model', // Lista branca de campos
+];
+```
+- Apenas campos listados podem ser preenchidos em massa
+- Previne modificação de campos sensíveis (id, created_at, etc)
+
+---
+
+## 7. Validação de Dados
+
+### 7.1 Form Requests
+Validações centralizadas em classes dedicadas:
+- `StoreVehicleRequest`
+- `UpdateVehicleRequest`
+- `StoreDriverRequest`
+- Etc...
+
+**Benefícios:**
+- Validações executadas ANTES do controller
+- Mensagens de erro padronizadas
+- Código limpo e organizado
+
+**Exemplo:**
+```php
+public function rules(): array
+{
+    return [
+        'plate' => 'required|string|max:10|unique:vehicles,plate',
+        'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+        'fuel_capacity' => 'nullable|numeric|min:0|max:999.99',
+    ];
+}
+```
+
+### 7.2 DTOs (Data Transfer Objects)
+Camada adicional de type safety:
+```php
+readonly class VehicleDTO
+{
+    public function __construct(
+        public readonly int $company_id,
+        public readonly string $plate,
+        // ...
+    ) {}
+}
+```
+
+---
+
+## 8. Boas Práticas Implementadas
+
+### 8.1 Soft Deletes
+- Dados nunca são deletados fisicamente
+- Possibilidade de recuperação
+- Auditoria completa de exclusões
+
+### 8.2 Eager Loading
+- Previne N+1 queries
+- Melhor performance
+```php
+Vehicle::with('company')->get(); // ✅ Otimizado
+```
+
+### 8.3 Repository Pattern
+- Separação de responsabilidades
+- Facilita testes unitários
+- Código reutilizável
+
+### 8.4 Service Layer
+- Lógica de negócio centralizada
+- Controllers finos e limpos
+- Facilita manutenção
+
+---
+
+## 9. Avisos Importantes
+
+### 9.1 Senhas em Seeders
+⚠️ **APENAS PARA DESENVOLVIMENTO**
+
+Os seeders usam senhas em plain text:
+```php
+'password' => bcrypt('password'), // Senha: "password"
+```
+
+**⚠️ EM PRODUÇÃO:**
+- Nunca usar seeders com senhas padrão
+- Gerar senhas fortes aleatoriamente
+- Forçar troca de senha no primeiro login
+
+### 9.2 Variáveis de Ambiente
+⚠️ **NUNCA COMMITAR `.env`**
+- Arquivo `.env` contém credenciais sensíveis
+- Sempre usar `.env.example` como template
+- Usar senhas fortes em produção
+
+---
+
+## 10. Recursos NÃO Implementados (Opcional)
+
+### 10.1 2FA (Two-Factor Authentication)
+Não implementado nesta versão. Para adicionar:
+- Laravel Fortify
+- Google Authenticator
+- SMS/Email OTP
+
+### 10.2 Criptografia de Campos Sensíveis
+Campos como CPF/CNH não estão criptografados.
+
+**Para implementar:**
+```php
+protected $casts = [
+    'cpf' => 'encrypted',
+    'cnh' => 'encrypted',
+];
+```
+
+⚠️ **Atenção:** Criptografia impede buscas exatas. Considerar hash para busca + criptografia para exibição.
+
+### 10.3 IP Whitelist
+Não implementado. Para ambientes críticos, considere:
+- Firewall em nível de servidor
+- Middleware de IP whitelist
+- VPN obrigatória
+
+---
+
+## 11. Checklist de Deploy em Produção
+
+Antes de fazer deploy, verificar:
+
+- [ ] Atualizar `allowed_origins` no CORS
+- [ ] Gerar APP_KEY nova: `php artisan key:generate`
+- [ ] Configurar variáveis de ambiente (.env)
+- [ ] Remover/desabilitar seeders
+- [ ] Configurar HTTPS obrigatório
+- [ ] Configurar backup automático do banco
+- [ ] Ativar logs de erros (Sentry, Bugsnag, etc)
+- [ ] Configurar rate limits adequados
+- [ ] Revisar permissões de arquivos (storage, bootstrap/cache)
+- [ ] Configurar queue workers (opcional)
+- [ ] Configurar cron jobs (opcional)
+
+---
+
+## 12. Contato de Segurança
+
+Se encontrar uma vulnerabilidade de segurança, por favor reporte para:
+- Email: octavioaugusto2121@gmai.com
+- Não divulgue publicamente até correção
+
+---
+
+## 13. Referências
+
+- [Laravel Security Best Practices](https://laravel.com/docs/11.x/security)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [Laravel Sanctum Docs](https://laravel.com/docs/11.x/sanctum)
+- [Laravel Policies](https://laravel.com/docs/11.x/authorization)
+
+---
+
+**Última atualização:** Janeiro 2026
+**Versão:** 1.0.0

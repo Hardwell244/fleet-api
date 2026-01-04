@@ -6,7 +6,6 @@ use App\DTOs\VehicleDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreVehicleRequest;
 use App\Http\Requests\UpdateVehicleRequest;
-use App\Models\Vehicle;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,9 +16,12 @@ class VehicleController extends Controller
         private VehicleService $service
     ) {}
 
+    /**
+     * Listar veículos (filtrado por company automaticamente)
+     */
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Vehicle::class);
+        $this->authorize('viewAny', \App\Models\Vehicle::class);
 
         $perPage = $request->input('per_page', 15);
 
@@ -43,9 +45,12 @@ class VehicleController extends Controller
         ]);
     }
 
+    /**
+     * Listar veículos disponíveis
+     */
     public function available(): JsonResponse
     {
-        $this->authorize('viewAny', Vehicle::class);
+        $this->authorize('viewAny', \App\Models\Vehicle::class);
 
         $vehicles = $this->service->getAvailable();
 
@@ -55,6 +60,9 @@ class VehicleController extends Controller
         ]);
     }
 
+    /**
+     * Exibir veículo específico
+     */
     public function show(string $id): JsonResponse
     {
         $vehicle = $this->service->findById((int) $id);
@@ -74,9 +82,12 @@ class VehicleController extends Controller
         ]);
     }
 
+    /**
+     * Criar novo veículo
+     */
     public function store(StoreVehicleRequest $request): JsonResponse
     {
-        $this->authorize('create', Vehicle::class);
+        $this->authorize('create', \App\Models\Vehicle::class);
 
         $dto = VehicleDTO::fromRequest(
             $request->validated(),
@@ -92,6 +103,9 @@ class VehicleController extends Controller
         ], 201);
     }
 
+    /**
+     * Atualizar veículo
+     */
     public function update(UpdateVehicleRequest $request, string $id): JsonResponse
     {
         $vehicle = $this->service->findById((int) $id);
@@ -126,6 +140,9 @@ class VehicleController extends Controller
         ]);
     }
 
+    /**
+     * Deletar veículo
+     */
     public function destroy(string $id): JsonResponse
     {
         $vehicle = $this->service->findById((int) $id);

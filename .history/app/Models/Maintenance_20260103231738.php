@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Maintenance extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToCompany, LogsActivity;
+    use HasFactory, SoftDeletes, BelongsToCompany;
 
     protected $fillable = [
         'company_id',

@@ -48,6 +48,7 @@ class VehicleService
             return false;
         }
 
+        // Verificar se pode deletar (ex: não tem entregas ativas)
         if ($vehicle->deliveries()->whereIn('status', ['pending', 'assigned', 'in_transit'])->exists()) {
             throw new \Exception('Não é possível deletar veículo com entregas ativas.');
         }

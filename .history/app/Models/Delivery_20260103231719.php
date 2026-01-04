@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 
 class Delivery extends Model
 {
-    use HasFactory, SoftDeletes, BelongsToCompany, LogsActivity;
+    use HasFactory, SoftDeletes, BelongsToCompany;
 
     protected $fillable = [
         'company_id',

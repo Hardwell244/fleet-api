@@ -2,110 +2,108 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\DTOs\VehicleDTO;
+use App\DTOs\DriverDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreVehicleRequest;
-use App\Http\Requests\UpdateVehicleRequest;
-use App\Models\Vehicle;
-use App\Services\VehicleService;
+use App\Http\Requests\StoreDriverRequest;
+use App\Http\Requests\UpdateDriverRequest;
+use App\Services\DriverService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class VehicleController extends Controller
+class DriverController extends Controller
 {
     public function __construct(
-        private VehicleService $service
+        private DriverService $service
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Vehicle::class);
+        $this->authorize('viewAny', \App\Models\Driver::class);
 
         $perPage = $request->input('per_page', 15);
 
         $filters = [
             'status' => $request->input('status'),
-            'type' => $request->input('type'),
             'search' => $request->input('search'),
         ];
 
-        $vehicles = $this->service->list($perPage, $filters);
+        $drivers = $this->service->list($perPage, $filters);
 
         return response()->json([
             'success' => true,
-            'data' => $vehicles->items(),
+            'data' => $drivers->items(),
             'meta' => [
-                'current_page' => $vehicles->currentPage(),
-                'per_page' => $vehicles->perPage(),
-                'total' => $vehicles->total(),
-                'last_page' => $vehicles->lastPage(),
+                'current_page' => $drivers->currentPage(),
+                'per_page' => $drivers->perPage(),
+                'total' => $drivers->total(),
+                'last_page' => $drivers->lastPage(),
             ]
         ]);
     }
 
     public function available(): JsonResponse
     {
-        $this->authorize('viewAny', Vehicle::class);
+        $this->authorize('viewAny', \App\Models\Driver::class);
 
-        $vehicles = $this->service->getAvailable();
+        $drivers = $this->service->getAvailable();
 
         return response()->json([
             'success' => true,
-            'data' => $vehicles
+            'data' => $drivers
         ]);
     }
 
     public function show(string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $driver = $this->service->findById((int) $id);
 
-        if (!$vehicle) {
+        if (!$driver) {
             return response()->json([
                 'success' => false,
-                'message' => 'Veículo não encontrado.'
+                'message' => 'Motorista não encontrado.'
             ], 404);
         }
 
-        $this->authorize('view', $vehicle);
+        $this->authorize('view', $driver);
 
         return response()->json([
             'success' => true,
-            'data' => $vehicle
+            'data' => $driver
         ]);
     }
 
-    public function store(StoreVehicleRequest $request): JsonResponse
+    public function store(StoreDriverRequest $request): JsonResponse
     {
-        $this->authorize('create', Vehicle::class);
+        $this->authorize('create', \App\Models\Driver::class);
 
-        $dto = VehicleDTO::fromRequest(
+        $dto = DriverDTO::fromRequest(
             $request->validated(),
             auth()->user()->company_id
         );
 
-        $vehicle = $this->service->create($dto);
+        $driver = $this->service->create($dto);
 
         return response()->json([
             'success' => true,
-            'message' => 'Veículo cadastrado com sucesso!',
-            'data' => $vehicle
+            'message' => 'Motorista cadastrado com sucesso!',
+            'data' => $driver
         ], 201);
     }
 
-    public function update(UpdateVehicleRequest $request, string $id): JsonResponse
+    public function update(UpdateDriverRequest $request, string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $driver = $this->service->findById((int) $id);
 
-        if (!$vehicle) {
+        if (!$driver) {
             return response()->json([
                 'success' => false,
-                'message' => 'Veículo não encontrado.'
+                'message' => 'Motorista não encontrado.'
             ], 404);
         }
 
-        $this->authorize('update', $vehicle);
+        $this->authorize('update', $driver);
 
-        $dto = VehicleDTO::fromRequest(
+        $dto = DriverDTO::fromRequest(
             $request->validated(),
             auth()->user()->company_id,
             (int) $id
@@ -116,41 +114,41 @@ class VehicleController extends Controller
         if (!$updated) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao atualizar veículo.'
+                'message' => 'Erro ao atualizar motorista.'
             ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Veículo atualizado com sucesso!'
+            'message' => 'Motorista atualizado com sucesso!'
         ]);
     }
 
     public function destroy(string $id): JsonResponse
     {
-        $vehicle = $this->service->findById((int) $id);
+        $driver = $this->service->findById((int) $id);
 
-        if (!$vehicle) {
+        if (!$driver) {
             return response()->json([
                 'success' => false,
-                'message' => 'Veículo não encontrado.'
+                'message' => 'Motorista não encontrado.'
             ], 404);
         }
 
-        $this->authorize('delete', $vehicle);
+        $this->authorize('delete', $driver);
 
         $deleted = $this->service->delete((int) $id);
 
         if (!$deleted) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao deletar veículo.'
+                'message' => 'Erro ao deletar motorista.'
             ], 500);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Veículo deletado com sucesso!'
+            'message' => 'Motorista deletado com sucesso!'
         ]);
     }
 }
